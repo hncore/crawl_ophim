@@ -13,6 +13,26 @@ function tool_add_menu()
 	);
 }
 
+function cURL($url) {
+	$args = array(
+		'headers' => array(
+			'Connection' => 'keep-alive',
+			'Keep-Alive' => '300',
+			'Accept-Charset' => 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
+			'Accept-Language' => 'en-us,en;q=0.5',
+			'User-Agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_1 like Mac OS X) AppleWebKit/603.1.30 (KHTML, like Gecko) Version/10.0 Mobile/14E304 Safari/602.1',
+		),
+		'timeout' => 30,
+		'sslverify' => false,
+		'redirection' => 5,
+	);
+	$response = wp_safe_remote_get($url, $args);
+	if (is_wp_error($response)) {
+		return ''; 
+	}
+	return wp_remote_retrieve_body($response);
+}
+	
 function crawl_tools()
 {
 
@@ -63,7 +83,7 @@ function crawl_tools()
 									Thời gian thực hiện (<a href="https://crontab.guru/" target="_blank">Xem thêm</a>)
 								</p>
 								<p>
-									Cấu hình crontab: <code><i style="color:blueviolet">*/10 * * * *</i> cd <i style="color:blueviolet">/path/to/</i>wp-content/plugins/crawl_ophim_halimthemes/ && php -q schedule.php <i style="color:blueviolet">{secret_key}</i></code>
+									Cấu hình crontab: <code><i style="color:blueviolet">*/10 * * * *</i> cd <i style="color:blueviolet">/path/to/</i>wp-content/plugins/crawl_ophim_haunthemes/ && php -q schedule.php <i style="color:blueviolet">{secret_key}</i></code>
 								</p>
 								<p>
 									Ví dụ:
@@ -256,7 +276,7 @@ function crawl_ophim_page()
 
 function crawl_ophim_page_handle($url)
 {
-	$sourcePage 			=  HALIMHelper::cURL($url);
+	$sourcePage 			=  cURL($url);
 	$sourcePage       = json_decode($sourcePage);
 	$listMovies 			= [];
 
@@ -297,7 +317,7 @@ function crawl_ophim_movies_handle($url, $ophim_id, $ophim_update_time, $filterT
 			'posts_per_page' => 1,
 			'meta_query' => array(
 				array(
-					'key' => '_halim_metabox_options',
+					'key' => '_haun_metabox_options',
 					'value' => $ophim_id,
 					'compare' => 'LIKE'
 				)
@@ -313,7 +333,7 @@ function crawl_ophim_movies_handle($url, $ophim_id, $ophim_update_time, $filterT
 				'posts_per_page' => 1,
 				'meta_query' => array(
 					array(
-						'key' => '_halim_metabox_options',
+						'key' => '_haun_metabox_options',
 						'value' => $ophim_id,
 						'compare' => 'LIKE'
 					)
@@ -322,8 +342,8 @@ function crawl_ophim_movies_handle($url, $ophim_id, $ophim_update_time, $filterT
 			$wp_query = new WP_Query($args);
 			if ($wp_query->have_posts()) : while ($wp_query->have_posts()) : $wp_query->the_post();
 					global $post;
-					$_halim_metabox_options = get_post_meta($post->ID, '_halim_metabox_options', true);
-					if($_halim_metabox_options["fetch_ophim_update_time"] == $ophim_update_time) { // Không có gì cần cập nhật
+					$_haun_metabox_options = get_post_meta($post->ID, '_haun_metabox_options', true);
+					if($_haun_metabox_options["fetch_ophim_update_time"] == $ophim_update_time) { // Không có gì cần cập nhật
 						$result = array(
 							'status'   			=> true,
 							'post_id' 			=> null,
@@ -336,7 +356,7 @@ function crawl_ophim_movies_handle($url, $ophim_id, $ophim_update_time, $filterT
 					}
 
 					$api_url 			= str_replace('ophim.tv', 'ophim1.com', $url);
-					$sourcePage 	=  HALIMHelper::cURL($api_url);
+					$sourcePage 	= cURL($api_url);
 					$sourcePage 	= json_decode($sourcePage, true);
 					$data 				= create_data($sourcePage, $url, $ophim_id, $ophim_update_time);
 
@@ -344,18 +364,18 @@ function crawl_ophim_movies_handle($url, $ophim_id, $ophim_update_time, $filterT
 
 					// Re-Update Movies Info
 					$formality 																					= ($data['type'] == 'tv_series') ? 'tv_series' : 'single_movies';
-					$_halim_metabox_options["halim_movie_formality"] 		= $formality;
-					$_halim_metabox_options["halim_movie_status"] 			= $status;
-					$_halim_metabox_options["fetch_info_url"] 					= $data['fetch_url'];
-					$_halim_metabox_options["fetch_ophim_update_time"] 	= $data['fetch_ophim_update_time'];
-					$_halim_metabox_options["halim_original_title"] 		= $data['org_title'];
-					$_halim_metabox_options["halim_trailer_url"] 				= $data['trailer_url'];
-					$_halim_metabox_options["halim_runtime"] 						= $data['duration'];
-					$_halim_metabox_options["halim_episode"] 						= $data['episode'];
-					$_halim_metabox_options["halim_total_episode"] 			= $data['total_episode'];
-					$_halim_metabox_options["halim_quality"] 						= $data['lang'] . ' - ' . $data['quality'];
-					$_halim_metabox_options["halim_showtime_movies"] 		= $data['showtime'];
-					update_post_meta($post->ID, '_halim_metabox_options', $_halim_metabox_options);
+					$_haun_metabox_options["haun_movie_formality"] 		= $formality;
+					$_haun_metabox_options["haun_movie_status"] 			= $status;
+					$_haun_metabox_options["fetch_info_url"] 					= $data['fetch_url'];
+					$_haun_metabox_options["fetch_ophim_update_time"] 	= $data['fetch_ophim_update_time'];
+					$_haun_metabox_options["haun_original_title"] 		= $data['org_title'];
+					$_haun_metabox_options["haun_trailer_url"] 				= $data['trailer_url'];
+					$_haun_metabox_options["haun_runtime"] 						= $data['duration'];
+					$_haun_metabox_options["haun_episode"] 						= $data['episode'];
+					$_haun_metabox_options["haun_total_episode"] 			= $data['total_episode'];
+					$_haun_metabox_options["haun_quality"] 						= $data['lang'] . ' - ' . $data['quality'];
+					$_haun_metabox_options["haun_showtime_movies"] 		= $data['showtime'];
+					update_post_meta($post->ID, '_haun_metabox_options', $_haun_metabox_options);
 
 					// Re-Update Episodes
 					$list_episode = get_list_episode($sourcePage, $post->ID);
@@ -374,7 +394,7 @@ function crawl_ophim_movies_handle($url, $ophim_id, $ophim_update_time, $filterT
 		}
 
 		$api_url 		= str_replace('ophim.tv', 'ophim1.com', $url);
-		$sourcePage =  HALIMHelper::cURL($api_url);
+		$sourcePage =  cURL($api_url);
 		$sourcePage = json_decode($sourcePage, true);
 		$data 			= create_data($sourcePage, $url, $ophim_id, $ophim_update_time, $filterType, $filterCategory, $filterCountry);
 		if($data['crawl_filter']) {
@@ -530,28 +550,28 @@ function add_posts($data)
 	$status = getStatus($data['status']);
 	wp_set_object_terms($post_id, $status, 'status', false);
 
-	$post_format 				= halim_get_post_format_type($formality);
+	$post_format 				= haun_get_post_format_type($formality);
 	set_post_format($post_id, $post_format);
 
 	$post_meta_movies = array(
-		'halim_movie_formality' 		=> $formality,
-		'halim_movie_status'    		=> $status,
+		'haun_movie_formality' 		=> $formality,
+		'haun_movie_status'    		=> $status,
 		'fetch_info_url'						=> $data['fetch_url'],
 		'fetch_ophim_id'						=> $data['fetch_ophim_id'],
 		'fetch_ophim_update_time'		=> $data['fetch_ophim_update_time'],
-		'halim_poster_url'      		=> $poster_image_url,
-		'halim_thumb_url'       		=> $thumb_image_url,
-		'halim_original_title'			=> $data['org_title'],
-		'halim_trailer_url' 				=> $data['trailer_url'],
-		'halim_runtime'							=> $data['duration'],
-		'halim_rating' 							=> '',
-		'halim_votes' 							=> '',
-		'halim_episode'         		=> $data['episode'],
-		'halim_total_episode' 			=> $data['total_episode'],
-		'halim_quality'         		=> $data['lang'] . ' - ' . $data['quality'],
-		'halim_movie_notice' 				=> '',
-		'halim_showtime_movies' 		=> $data['showtime'],
-		'halim_add_to_widget' 			=> false,
+		'haun_poster_url'      		=> $poster_image_url,
+		'haun_thumb_url'       		=> $thumb_image_url,
+		'haun_original_title'			=> $data['org_title'],
+		'haun_trailer_url' 				=> $data['trailer_url'],
+		'haun_runtime'							=> $data['duration'],
+		'haun_rating' 							=> '',
+		'haun_votes' 							=> '',
+		'haun_episode'         		=> $data['episode'],
+		'haun_total_episode' 			=> $data['total_episode'],
+		'haun_quality'         		=> $data['lang'] . ' - ' . $data['quality'],
+		'haun_movie_notice' 				=> '',
+		'haun_showtime_movies' 		=> $data['showtime'],
+		'haun_add_to_widget' 			=> false,
 		'save_poster_image' 				=> false,
 		'set_reatured_image' 				=> false,
 		'save_all_img' 							=> false,
@@ -560,8 +580,8 @@ function add_posts($data)
 	);
 
 	$default_episode     									= array();
-	$ep_sv_add['halimmovies_server_name'] = "Server #1";
-	$ep_sv_add['halimmovies_server_data'] = array();
+	$ep_sv_add['haunmovies_server_name'] = "Server #1";
+	$ep_sv_add['haunmovies_server_data'] = array();
 	array_push($default_episode, $ep_sv_add);
 
 	wp_set_object_terms($post_id, $director, 'director', false);
@@ -570,8 +590,8 @@ function add_posts($data)
 	wp_set_object_terms($post_id, $data['country'], 'country', false);
 	wp_set_post_terms($post_id, $data['tags']);
 	wp_set_post_categories($post_id, $cat_id);
-	update_post_meta($post_id, '_halim_metabox_options', $post_meta_movies);
-	update_post_meta($post_id, '_halimmovies', json_encode($default_episode, JSON_UNESCAPED_UNICODE));
+	update_post_meta($post_id, '_haun_metabox_options', $post_meta_movies);
+	update_post_meta($post_id, '_haunmovies', json_encode($default_episode, JSON_UNESCAPED_UNICODE));
 	update_post_meta($post_id, '_edit_last', 1);
 	return $post_id;
 }
@@ -619,8 +639,8 @@ function get_list_episode($sourcePage, $post_id)
 	$server_add = array();
 	if ($sourcePage["episodes"][0]["server_data"][0]["link_m3u8"] !== "") {
 		foreach ($sourcePage["episodes"] as $key => $servers) {
-			$server_info["halimmovies_server_name"] = $servers["server_name"];
-			$server_info["halimmovies_server_data"] = array();
+			$server_info["haunmovies_server_name"] = $servers["server_name"];
+			$server_info["haunmovies_server_data"] = array();
 
 			foreach ($servers["server_data"] as $episode) {
 				$slug_array 											= slugify($episode["name"], '_');
@@ -628,25 +648,25 @@ function get_list_episode($sourcePage, $post_id)
 				$episode["link_m3u8"]							= str_replace('http:', 'https:', $episode["link_m3u8"]);
 				$episode["link_embed"]						= str_replace('http:', 'https:', $episode["link_embed"]);
 
-				$ep_data['halimmovies_ep_name'] 	= $episode["name"];
-				$ep_data['halimmovies_ep_slug'] 	= $slug_ep;
-				$ep_data['halimmovies_ep_type'] 	= 'link';
-				$ep_data['halimmovies_ep_link'] 	= $episode["link_m3u8"];
-				$ep_data['halimmovies_ep_subs'] 	= array();
-				$ep_data['halimmovies_ep_listsv'] = array();
+				$ep_data['haunmovies_ep_name'] 	= $episode["name"];
+				$ep_data['haunmovies_ep_slug'] 	= $slug_ep;
+				$ep_data['haunmovies_ep_type'] 	= 'link';
+				$ep_data['haunmovies_ep_link'] 	= $episode["link_m3u8"];
+				$ep_data['haunmovies_ep_subs'] 	= array();
+				$ep_data['haunmovies_ep_listsv'] = array();
 				# Sử dụng link embed làm server dự phòng.
 				$subServerData = array(
-					"halimmovies_ep_listsv_link" => $episode["link_embed"],
-					"halimmovies_ep_listsv_type" => "embed",
-					"halimmovies_ep_listsv_name" => "#Dự Phòng"
+					"haunmovies_ep_listsv_link" => $episode["link_embed"],
+					"haunmovies_ep_listsv_type" => "embed",
+					"haunmovies_ep_listsv_name" => "#Dự Phòng"
 				);
-				array_push($ep_data['halimmovies_ep_listsv'], $subServerData);
+				array_push($ep_data['haunmovies_ep_listsv'], $subServerData);
 				
-				$server_info["halimmovies_server_data"][$slug_array] = $ep_data;
+				$server_info["haunmovies_server_data"][$slug_array] = $ep_data;
 			}
 			array_push($server_add, $server_info);
 		}
-		update_post_meta($post_id, '_halimmovies', json_encode($server_add, JSON_UNESCAPED_UNICODE));
+		update_post_meta($post_id, '_haunmovies', json_encode($server_add, JSON_UNESCAPED_UNICODE));
 	}
 	return json_encode($server_add);
 }

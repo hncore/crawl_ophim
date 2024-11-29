@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Crawl OPHIM1.CC
- * Description: Crawl + Update Dữ liệu từ OPhim1.CC (WP - Halimthemes - 5.5.4)
+ * Description: Crawl + Update Dữ liệu từ OPhim1.CC
  * Version: 1.2.0
  * Author: Phantom0803@Ophim1.Cc
  * Author URI: https://ophim1.cc/
@@ -31,12 +31,12 @@ function ophim_meta_box() {
 add_action( 'add_meta_boxes', 'ophim_meta_box' );
 
 function ophim_custom_meta_box($post, $metabox) {
-	$_halim_metabox_options = get_post_meta($post->ID, '_halim_metabox_options', true);
+	$_haun_metabox_options = get_post_meta($post->ID, '_haun_metabox_options', true);
 	wp_nonce_field(basename(__FILE__), 'post_media_metabox');
 ?>
   <div class="inside">
-    <label for="fetch_ophim_id">OPhim ID: </label><input styles="width: 100%" name="fetch_ophim_id" type="text" id="fetch_ophim_id" value="<?php echo $_halim_metabox_options["fetch_ophim_id"];?>">
-    <label for="fetch_ophim_update_time">Thời gian cập nhật: </label><input styles="width: 100%" name="fetch_ophim_update_time" type="text" id="fetch_ophim_update_time" value="<?php echo $_halim_metabox_options["fetch_ophim_update_time"];?>">
+    <label for="fetch_ophim_id">OPhim ID: </label><input styles="width: 100%" name="fetch_ophim_id" type="text" id="fetch_ophim_id" value="<?php echo $_haun_metabox_options["fetch_ophim_id"];?>">
+    <label for="fetch_ophim_update_time">Thời gian cập nhật: </label><input styles="width: 100%" name="fetch_ophim_update_time" type="text" id="fetch_ophim_update_time" value="<?php echo $_haun_metabox_options["fetch_ophim_update_time"];?>">
 	</div>
 <?php
 }
@@ -55,11 +55,11 @@ function ophim_custom_save_metabox($post_id, $post)
   $fetch_ophim_id = (isset($_POST["fetch_ophim_id"])) ? sanitize_text_field($_POST["fetch_ophim_id"]) : '';
   $fetch_ophim_update_time = (isset($_POST["fetch_ophim_update_time"])) ? sanitize_text_field($_POST["fetch_ophim_update_time"]) : '';
 
-	$_halim_metabox_options = get_post_meta($post_id, '_halim_metabox_options', true);
-	$_halim_metabox_options["fetch_ophim_id"] = $fetch_ophim_id;
-	$_halim_metabox_options["fetch_ophim_update_time"] = $fetch_ophim_update_time;
+	$_haun_metabox_options = get_post_meta($post_id, '_haun_metabox_options', true);
+	$_haun_metabox_options["fetch_ophim_id"] = $fetch_ophim_id;
+	$_haun_metabox_options["fetch_ophim_update_time"] = $fetch_ophim_update_time;
 	
-	update_post_meta($post_id, '_halim_metabox_options', $_halim_metabox_options);
+	update_post_meta($post_id, '_haun_metabox_options', $_haun_metabox_options);
 }
 add_action('save_post', 'ophim_custom_save_metabox', 20, 2);
 
